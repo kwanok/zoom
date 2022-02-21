@@ -14,12 +14,23 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`)
 const server = http.createServer(app)
 const wss = new WebSocket.Server({server})
 
+const sockets = []
+
 wss.on("connection", (socket) => {
+    sockets.push(socket)
+    socket["nickname"] = "Anonymous"
     socket.on("close", () => console.log("브라우저와 연결 종료 😭"))
-    socket.on("message", (message) => {
-        console.log(message.toString())
+    socket.on("message", (msg) => {
+        const message = JSON.parse(msg)
+        switch (message.type) {
+            case "new_message":
+                sockets.forEach((_socket) => _socket.send(`${socket.nickname}: ${message.payload}`))
+                break
+            case "nickname":
+                socket["nickname"] = message.payload
+                break
+        }
     })
-    socket.send("hello")
 })
 
 server.listen(3000, handleListen)
