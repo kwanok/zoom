@@ -1,6 +1,6 @@
 import * as http from 'http'
 import express from 'express'
-import {WebSocket} from "ws";
+import SocketIo from 'socket.io'
 
 const app = express();
 
@@ -12,10 +12,22 @@ app.get("/", (req, res) => res.render("home"))
 const handleListen = () => console.log(`Listening on http://localhost:3000`)
 
 const server = http.createServer(app)
-const wss = new WebSocket.Server({server})
+// const wss = new WebSocket.Server({server})
+// const sockets = []
+const io = SocketIo(server)
 
-const sockets = []
+io.on('connection', (socket) => {
+    socket.on("enter_room", (msg, done) => {
+        console.log(msg)
+        setTimeout(() => {
+            done('끝났노라..😎')
+        }, 10000)
+    })
+})
 
+
+
+/*
 wss.on("connection", (socket) => {
     sockets.push(socket)
     socket["nickname"] = "Anonymous"
@@ -32,5 +44,7 @@ wss.on("connection", (socket) => {
         }
     })
 })
+
+ */
 
 server.listen(3000, handleListen)
