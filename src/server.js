@@ -17,12 +17,24 @@ const server = http.createServer(app)
 const io = SocketIo(server)
 
 io.on('connection', (socket) => {
-    socket.on("enter_room", (msg, done) => {
-        console.log(msg)
-        setTimeout(() => {
-            done('끝났노라..😎')
-        }, 10000)
+    socket["nickname"] = "Anonymous"
+    socket.onAny((event) => {
+        console.log(`소켓 이벤트: ${event}`)
     })
+    socket.on("enter_room", (roomName, done) => {
+        socket.join(roomName)
+        done()
+        socket.to(roomName).emit("welcome", socket.nickname)
+        console.log(roomName)
+    })
+    socket.on("disconnecting", () => {
+        socket.rooms.forEach(room => socket.to(room).emit("bye", socket.nickname))
+    })
+    socket.on("new_message", (msg, room, done) => {
+        socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`)
+        done()
+    })
+    socket.on("nickname", nickname => socket["nickname"] = nickname)
 })
 
 
